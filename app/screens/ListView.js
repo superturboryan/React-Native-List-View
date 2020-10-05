@@ -8,12 +8,19 @@ import {
     Text,
     StyleSheet, 
     FlatList,
+    Modal,
+    TouchableWithoutFeedback,
 } from "react-native";
+
+import DetailView from './DetailView'
 
 const ListView = props => {
 
     const [ employeeList, setEmployeeList ] = useState( [] )
     const [refresh, setRefresh] = useState(false);
+
+    const [modalOpen, setModalOpen] = useState(false)
+    const [selectedEmployee, setSelectedEmployee] = useState({})
 
     const flatListRef = useRef(null);
 
@@ -33,16 +40,17 @@ const ListView = props => {
         //   console.log("Loaded list!", json.employees)
           
           setEmployeeList(json.employees)
+          setRefresh(false)
 
-          setTimeout(()=>{
-            setRefresh(false)
-          }, 500)
-        
         } catch (error) {
 
           console.error(error);
         }
     };
+
+    const closeModal = () => {
+        setModalOpen(false)
+    }
 
     const onRefresh = () => {
         setEmployeeList([])
@@ -51,7 +59,12 @@ const ListView = props => {
 
     const employeeCell = ({ item }) => {
         return (
-            <View style={styles.cell}>
+            <View 
+            style={styles.cell}
+            onTouchEnd={() => {
+                setSelectedEmployee(item)
+                setModalOpen(true)
+            }}>
                 
                 <Image 
                 style={styles.cellImage}
@@ -60,8 +73,9 @@ const ListView = props => {
                 }} />
                 
                 <Text style={styles.cellText}>
-                    {item['full_name'] + " - " + item.team}
+                    {item['full_name'] + " \n-" + item.team}
                 </Text> 
+
             </View>
         )
     }
@@ -69,6 +83,14 @@ const ListView = props => {
     return (
 
         <SafeAreaView style={styles.container}>
+
+            <Modal 
+            visible= {modalOpen}
+            animationType={"slide"}>
+
+                <DetailView employee={selectedEmployee} close={closeModal}/>
+
+            </Modal>
 
             <FlatList 
             style={styles.list}
@@ -86,8 +108,6 @@ const ListView = props => {
     )
 }
 
-
-
 const styles = StyleSheet.create({
         
     container: {
@@ -103,7 +123,7 @@ const styles = StyleSheet.create({
 
     cell: {
         backgroundColor:"lightgrey",
-        padding: 20,
+        padding: 15,
         marginTop:5,
         flexDirection:"row",
         justifyContent:"flex-start",
@@ -113,6 +133,7 @@ const styles = StyleSheet.create({
     cellImage: {
         height:50,
         width: 50,
+        borderRadius: 25,
     },
 
     cellText: {
